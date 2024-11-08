@@ -1,21 +1,27 @@
 #!/bin/bash
 
-# This script will create a database if not exists
+# This script sets up the database
 
-# Start MariaDB in the background
-mysqld_safe &
+chown -R mysql:mysql /var/lib/mysql
+chown -R mysql:mysql /run/mysqld
 
-# Wait for MariaDB to start
-while [ ! -S /run/mysqld/mysqld.sock ]; do
+if [ ! -d "/var/lib/mysql/mysql" ]; then
+    mysql_install_db --user=mysql --datadir=/var/lib/mysql
+fi
+
+mysqld_safe --skip-syslog --datadir=/var/lib/mysql &
+
+echo "Waiting for MariaDB to start..."
+until mysqladmin ping --silent; do
     sleep 1
 done
 
-# Execute MySQL commands
-mysql -e "CREATE DATABASE IF NOT EXISTS \`${DATABASE_NAME}\`;"
-mysql -e "CREATE USER IF NOT EXISTS \`${DATABASE_USER}\`@'localhost' IDENTIFIED BY '${DATABASE_PASSWD}';"
-mysql -e "GRANT ALL PRIVILEGES ON \`${DATABASE_NAME}\`.* TO \`${DATABASE_USER}\`@'%' IDENTIFIED BY '${DATABASE_PASSWD}';"
-mysql -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${DATABASE_ROOT_PASSWD}';"
-mysql -u root -p${DATABASE_ROOT_PASSWD} -e "FLUSH PRIVILEGES;"
+mysql -u root -e "CREATE DATABASE IF NOT EXISTS \`${MYSQL_DATABASE}\`;"
+mysql -u root -e "CREATE USER IF NOT EXISTS \`${MYSQL_USER}\`@'%' IDENTIFIED BY '${MYSQL_PASSWD}';"
+mysql -u root -e "GRANT ALL PRIVILEGES ON \`${MYSQL_DATABASE}\`.* TO \`${MYSQL_USER}\`@'%';"
+mysql -u root -e "ALTER USER 'root'@'localhost' IDENTIFIED BY '${MYSQL_ROOT_PASSWD}';"
+mysql -u root -p${MYSQL_ROOT_PASSWD} -e "FLUSH PRIVILEGES;"
 
-# Keep the container running
+echo "Database setup completed successfully."
+
 tail -f /dev/null
