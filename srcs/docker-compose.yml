@@ -1,3 +1,8 @@
+networks:
+  ft_services:
+    name: ft_services
+    driver: bridge
+
 services:
   nginx:
     build:
@@ -6,4 +11,21 @@ services:
     ports:
       # - "80:80"
       - "443:443"
+    networks:
+      - ft_services
     init: true
+    restart: always
+  mysql:
+    build:
+      context: ./mysql
+      dockerfile: Dockerfile
+    ports:
+      - "3306:3306"
+    env_file:
+      - .env
+    depends_on:
+      - nginx
+    networks:
+      - ft_services
+    init: true
+    restart: always
