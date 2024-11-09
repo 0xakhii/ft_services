@@ -4,14 +4,9 @@ COPY ./nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN apk update && apk upgrade \
 	&& apk add nginx \
-	&& apk add openssl ;mkdir /var/www/html && chmod 755 /var/www/html\
-	&& mkdir -p /etc/nginx/ssl/ && mkdir -p /run/nginx \
-	&& openssl req -x509 -nodes -out \
-	"/etc/nginx/ssl/self.cert" -keyout "/etc/nginx/ssl/self.key" -subj "/"
+	&& mkdir /var/www/html && chmod 755 /var/www/html\
+	&& mkdir -p /run/nginx
 
-
-EXPOSE 5050
-
-RUN sh -c 'echo -e "<h1>Hello World</h1>" > /var/www/html/index.html'
+EXPOSE 8080
 
 CMD ["nginx", "-g", "daemon off;"]

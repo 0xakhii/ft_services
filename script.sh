@@ -21,6 +21,7 @@ then
 	elif [ $1 == "clean" ]
 	then
 		sudo rm -rf ~/data/wordpress
+		docker volume rm $(docker volume ls -q)
 		docker stop $(docker ps -a -q)
 		docker rm $(docker ps -a -q)
 		docker rmi $(docker images -aq)

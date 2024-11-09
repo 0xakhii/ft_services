@@ -18,7 +18,7 @@ services:
       context: ./nginx
       dockerfile: Dockerfile
     ports:
-      # - "80:80"
+      - "80:80"
       - "443:443"
     networks:
       - ft_services
@@ -61,5 +61,5 @@ services:
     networks:
       - ft_services
     depends_on:
-      - nginx-wordpress
+      - mysql
     init: true

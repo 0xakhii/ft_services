@@ -12,6 +12,6 @@ RUN apk update && apk upgrade \
 
 EXPOSE 443 80
 
-RUN sh -c 'echo -e "<h1>Hello World</h1>" > /var/www/html/index.html'
+# RUN sh -c 'echo -e "<h1>Hello World</h1>" > /var/www/html/index.html'
 
 CMD ["nginx", "-g", "daemon off;"]
