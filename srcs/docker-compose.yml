@@ -3,6 +3,15 @@ networks:
     name: ft_services
     driver: bridge
 
+volumes:
+  wordpress:
+    driver: local
+    name: wordpress
+    driver_opts:
+      type: none
+      o: bind
+      device: ~/data/wordpress
+
 services:
   nginx:
     build:
@@ -23,9 +32,34 @@ services:
       - "3306:3306"
     env_file:
       - .env
-    depends_on:
-      - nginx
     networks:
       - ft_services
     init: true
     restart: always
+  nginx-wordpress:
+    build:
+      context: ./wordpress/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "8080:8080"
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - ft_services
+    init: true
+    restart: always
+  wordpress:
+    build:
+      context: ./wordpress
+      dockerfile: Dockerfile
+    ports:
+      - "5050:5050"
+    env_file:
+      - .env
+    volumes:
+      - wordpress:/var/www/html
+    networks:
+      - ft_services
+    depends_on:
+      - nginx-wordpress
+    init: true

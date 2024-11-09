@@ -10,7 +10,7 @@ RUN apk update && apk upgrade \
 	"/etc/nginx/ssl/self.cert" -keyout "/etc/nginx/ssl/self.key" -subj "/"
 
 
-EXPOSE 443 80
+EXPOSE 5050
 
 RUN sh -c 'echo -e "<h1>Hello World</h1>" > /var/www/html/index.html'
 
