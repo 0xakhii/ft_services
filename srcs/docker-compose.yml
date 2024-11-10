@@ -46,6 +46,8 @@ services:
       - wordpress:/var/www/html
     networks:
       - ft_services
+    depends_on:
+      - wordpress
     init: true
     restart: always
   wordpress:
@@ -63,3 +65,4 @@ services:
     depends_on:
       - mysql
     init: true
+    restart: always
