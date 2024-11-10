@@ -66,3 +66,29 @@ services:
       - mysql
     init: true
     restart: always
+  phpmyadmin:
+    build:
+      context: ./phpmyadmin
+      dockerfile: Dockerfile
+    ports:
+      - "5000:5000"
+    env_file:
+      - .env
+    networks:
+      - ft_services
+    depends_on:
+      - mysql
+    init: true
+    restart: always
+  nginx-phpmyadmin:
+    build:
+      context: ./phpmyadmin/nginx
+      dockerfile: Dockerfile
+    ports:
+      - "9090:9090"
+    networks:
+      - ft_services
+    depends_on:
+      - phpmyadmin
+    init: true
+    restart: always

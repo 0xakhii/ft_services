@@ -10,6 +10,6 @@ RUN apk update && apk upgrade \
 
 COPY conf/setup.sh /setup.sh
 
-EXPOSE 9000
+EXPOSE 5050
 
 CMD ["/bin/sh", "/setup.sh"]
