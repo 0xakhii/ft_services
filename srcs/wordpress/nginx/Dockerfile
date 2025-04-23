@@ -1,6 +1,7 @@
 FROM alpine:3.12
 
-COPY ./nginx.conf /etc/nginx/conf.d/default.conf
+ARG COPY_PATH
+COPY ${COPY_PATH}/nginx.conf /etc/nginx/conf.d/default.conf
 
 RUN apk update && apk upgrade \
 	&& apk add nginx \

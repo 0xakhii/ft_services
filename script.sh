@@ -1,31 +1,8 @@
 #!/bin/bash
 
-# This script will run the application 
-
-# check the arguments passed to the script
-
-if [ $1 == "up" ] || [ $1 == "down" ] || [ $1 == "re" ] || [ $1 == "clean" ]
-then
-	if [ $1 == "up" ]
-	then
-		mkdir -p ~/data/wordpress
-		docker-compose -f srcs/docker-compose.yml up
-	elif [ $1 == "down" ]
-	then
-		rm -rf ~/data/wordpress/*
-		docker-compose -f srcs/docker-compose.yml down
-	elif [ $1 == "re" ]
-	then
-		docker-compose -f srcs/docker-compose.yml down
-		docker-compose -f srcs/docker-compose.yml up
-	elif [ $1 == "clean" ]
-	then
-		docker volume rm $(docker volume ls -q)
-		docker stop $(docker ps -a -q)
-		docker rm $(docker ps -a -q)
-		docker rmi $(docker images -aq)
-		sudo rm -rf ~/data/wordpress/*
-	fi
-else
-	echo "Invalid argument passed. Please pass either up, down or re"
-fi
+docker build -t nginx-reverse:latest -f ./srcs/nginx/Dockerfile --build-arg COPY_PATH=srcs/nginx .
+docker build -t mysql:latest -f ./srcs/mysql/Dockerfile --build-arg COPY_PATH=srcs/mysql .
+docker build -t phpmyadmin-nginx:latest -f ./srcs/phpmyadmin/nginx/Dockerfile --build-arg COPY_PATH=srcs/phpmyadmin/nginx .
+docker build -t phpmyadmin:latest -f ./srcs/phpmyadmin/Dockerfile --build-arg COPY_PATH=srcs/phpmyadmin/ .
+docker build -t wordpress-nginx:latest -f ./srcs/wordpress/nginx/Dockerfile --build-arg COPY_PATH=srcs/wordpress/nginx .
+docker build -t wordpress:latest -f ./srcs/wordpress/Dockerfile --build-arg COPY_PATH=srcs/wordpress/ .

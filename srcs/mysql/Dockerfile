@@ -1,6 +1,7 @@
 FROM alpine:3.12
 
-COPY setup.sh /
+ARG COPY_PATH
+COPY ${COPY_PATH}/setup.sh /
 
 RUN apk update && apk add --no-cache mariadb mariadb-client
 

@@ -1,5 +1,6 @@
 FROM alpine:3.12
 
+ARG COPY_PATH
 WORKDIR /var/www/html/
 
 RUN apk update && apk upgrade \
@@ -8,7 +9,7 @@ RUN apk update && apk upgrade \
     && chmod +x wp-cli.phar \
     && mv wp-cli.phar /bin/wp
 
-COPY conf/setup.sh /setup.sh
+COPY ${COPY_PATH}/conf/setup.sh /setup.sh
 
 EXPOSE 5050
 
