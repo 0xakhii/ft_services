@@ -1,9 +1,9 @@
 #!/bin/bash
-# start a minikube cluster
+
+# Start a k8s cluster
 minikube start --driver=virtualbox
 
-
-#Build docker images
+# Build docker images
 docker build -t my-mysql:latest ./srcs/mysql
 docker build -t my-nginx:latest ./srcs/nginx
 docker build -t my-wordpress:latest ./srcs/wordpress
@@ -14,8 +14,7 @@ docker build -t my-ftps:latest ./srcs/ftps
 docker build -t my-influxdb:latest ./srcs/influxdb
 docker build -t my-grafana:latest ./srcs/grafana
 
-
-#Save docker images as .tar format
+# Save docker images as .tar format
 docker save -o my-mysql.tar my-mysql:latest
 docker save -o my-nginx.tar my-nginx:latest
 docker save -o my-wordpress.tar my-wordpress:latest
@@ -26,8 +25,8 @@ docker save -o my-ftps.tar my-ftps:latest
 docker save -o my-influxdb.tar my-influxdb:latest
 docker save -o my-grafana.tar my-grafana:latest
 
+# Load docker images to k8s cluster
 
-#Load docker images to minikube
 minikube image load my-mysql.tar
 minikube image load my-nginx.tar
 minikube image load my-wordpress.tar
@@ -38,8 +37,7 @@ minikube image load my-ftps.tar
 minikube image load my-influxdb.tar
 minikube image load my-grafana.tar
 
-
-#Deploy
+# Deploy
 kubectl apply -f ./srcs/metallb/metallb-config.yaml
 kubectl apply -f ./srcs/mysql/deployment.yaml
 kubectl apply -f ./srcs/nginx/deployment.yaml
