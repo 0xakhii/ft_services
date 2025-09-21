@@ -1,15 +1,12 @@
-FROM alpine:3.12
-
-ARG COPY_PATH
+FROM alpine:3.19
 RUN apk update && apk upgrade \
-	&& apk add lighttpd php fcgi php-cgi openrc php-mysqli
-
-COPY ${COPY_PATH}/conf/setup.sh /
-
-RUN echo 'include "mod_fastcgi.conf"' >> /etc/lighttpd/lighttpd.conf \
-	&& echo 'bin-path = "/usr/bin/php-cgi"' >> /etc/lighttpd/mod_fastcgi.conf \
-	rc-service lighttpd start && rc-update add lighttpd default && chmod +x /setup.sh
-
-EXPOSE 5000
-
-CMD [ "sh", "/setup.sh" ]
+    && apk add php7 php7-fpm php7-mysqli php7-mbstring php7-session php7-json wget
+COPY ./conf/setup.sh /
+RUN chmod +x /setup.sh && \
+    wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz && \
+    tar -xzf /tmp/phpmyadmin.tar.gz -C /tmp && \
+    mv /tmp/phpMyAdmin-5.2.1-all-languages /var/www/phpmyadmin && \
+    chown -R nobody:nobody /var/www/phpmyadmin
+EXPOSE 9000 
+HEALTHCHECK --interval=10s --timeout=3s CMD wget --spider -q http://localhost:9000 || exit 1
+CMD ["/bin/sh", "/setup.sh"]

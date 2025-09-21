@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.19
 
 ARG COPY_PATH
 WORKDIR /var/www/html/
