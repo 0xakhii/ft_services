@@ -1,4 +1,4 @@
-FROM alpine:3.12
+FROM alpine:3.19
 RUN apk update && apk upgrade
 
 RUN wget -q -O- https://packages.grafana.com/gpg.key; \
