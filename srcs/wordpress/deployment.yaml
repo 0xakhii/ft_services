@@ -12,6 +12,15 @@ spec:
       labels:
         app: wordpress
     spec:
+      # initContainers:
+      # - name: wait-for-mysql
+      #   image: busybox:1.36
+      #   command:
+      #     - sh
+      #     - -c
+      #     - >
+      #       until nc -z mysql 3306;
+      #       do echo "Waiting for MySQL..."; sleep 2; done
       containers:
       - name: wordpress
         image: my-wordpress:latest
@@ -19,13 +28,23 @@ spec:
         ports:
         - containerPort: 9000
         envFrom:
-        - secretRef:
-            name: wordpress-secrets
-      - name: wordpress-nginx
-        image: my-wordpress-nginx:latest
+        - configMapRef:
+            name: global-env
+        volumeMounts:
+        - name: wordpress-data
+          mountPath: /var/www/html
+      - name: nginx-wordpress
+        image: my-nginx-wordpress:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 5050
+        volumeMounts:
+        - name: wordpress-data
+          mountPath: /var/www/html
+      volumes:
+      - name: wordpress-data
+        persistentVolumeClaim:
+          claimName: wordpress-pvc
 
 ---
 
@@ -40,15 +59,3 @@ spec:
   - port: 5050
     targetPort: 5050
   type: LoadBalancer
-
----
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: wordpress-secrets
-type: Opaque
-stringData:
-  WP_DB_USER: wp_user
-  WP_DB_PASSWORD: wp_password
-  WP_ADMIN_PASSWORD: wp_admin_password

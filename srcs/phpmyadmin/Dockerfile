@@ -1,12 +1,18 @@
 FROM alpine:3.19
+
+WORKDIR /var/www/html/
+
 RUN apk update && apk upgrade \
-    && apk add php7 php7-fpm php7-mysqli php7-mbstring php7-session php7-json wget
-COPY ./conf/setup.sh /
-RUN chmod +x /setup.sh && \
-    wget -O /tmp/phpmyadmin.tar.gz https://files.phpmyadmin.net/phpMyAdmin/5.2.1/phpMyAdmin-5.2.1-all-languages.tar.gz && \
-    tar -xzf /tmp/phpmyadmin.tar.gz -C /tmp && \
-    mv /tmp/phpMyAdmin-5.2.1-all-languages /var/www/phpmyadmin && \
-    chown -R nobody:nobody /var/www/phpmyadmin
-EXPOSE 9000 
-HEALTHCHECK --interval=10s --timeout=3s CMD wget --spider -q http://localhost:9000 || exit 1
+    && apk add --no-cache php82 php82-cli php82-mysqli php82-phar php82-mbstring php82-iconv php82-curl php82-fpm wget unzip \
+    && ln -sf /usr/bin/php82 /usr/bin/php \
+    && wget https://www.phpmyadmin.net/downloads/phpMyAdmin-latest-all-languages.zip \
+    && unzip phpMyAdmin-latest-all-languages.zip \
+    && mv phpMyAdmin-*-all-languages/* /var/www/html/ \
+    && rm -rf phpMyAdmin-*-all-languages* \
+    && chmod -R 755 /var/www/html
+
+COPY ./conf/setup.sh /setup.sh
+
+EXPOSE 5000
+
 CMD ["/bin/sh", "/setup.sh"]

@@ -12,6 +12,15 @@ spec:
       labels:
         app: phpmyadmin
     spec:
+      # initContainers:
+      # - name: wait-for-mysql
+      #   image: busybox:1.36
+      #   command:
+      #     - sh
+      #     - -c
+      #     - >
+      #       until nc -z mysql 3306;
+      #       do echo "Waiting for MySQL..."; sleep 2; done
       containers:
       - name: phpmyadmin
         image: my-phpmyadmin:latest
@@ -19,13 +28,23 @@ spec:
         ports:
         - containerPort: 9000
         envFrom:
-        - secretRef:
-            name: phpmyadmin-secrets
-      - name: phpmyadmin-nginx
-        image: my-phpmyadmin-nginx:latest
+        - configMapRef:
+            name: global-env
+        volumeMounts:
+        - name: phpmyadmin-data
+          mountPath: /var/www/html
+      - name: nginx-phpmyadmin
+        image: my-nginx-phpmyadmin:latest
         imagePullPolicy: Never
         ports:
         - containerPort: 5000
+        volumeMounts:
+        - name: phpmyadmin-data
+          mountPath: /var/www/html
+      volumes:
+      - name: phpmyadmin-data
+        persistentVolumeClaim:
+          claimName: phpmyadmin-pvc
 
 ---
 
@@ -40,14 +59,3 @@ spec:
   - port: 5000
     targetPort: 5000
   type: LoadBalancer
-
----
-
-apiVersion: v1
-kind: Secret
-metadata:
-  name: phpmyadmin-secrets
-type: Opaque
-stringData:
-  PMA_DB_USER: pma_user
-  PMA_DB_PASSWORD: pma_password

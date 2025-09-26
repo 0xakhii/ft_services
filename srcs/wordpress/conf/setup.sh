@@ -1,14 +1,33 @@
-#!/bin/bash
+#!/bin/sh
 
-# This script sets up WordPress and links it to the database
+# This script sets up WordPress and links it to the database (PHP 8.2 compatible)
 
-# Check if WordPress is already set up
-if [ ! -f "/var/www/html/wp-config.php" ]; then
+WP_PATH="/var/www/html"
+FPM_CONF="/etc/php82/php-fpm.d/www.conf"
+
+# Create directories if needed
+mkdir -p "${WP_PATH}"
+
+# Set safe permissions and ownership (use www-data, common in PHP/WordPress images)
+# If you need 'nginx', uncomment the creation lines below
+# addgroup -g 82 -S nginx || true  # Create group if not exists (Alpine-style)
+# adduser -u 82 -D -S -G nginx nginx || true  # Create user if not exists
+chown -R www-data:www-data "${WP_PATH}" || chown -R $(whoami):$(whoami) "${WP_PATH}"  # Fallback to current user if www-data doesn't exist
+chmod -R 755 "${WP_PATH}"
+
+if [ ! -f "${WP_PATH}/wp-config.php" ]; then
     echo "Downloading WordPress..."
-    wp core download --path=/var/www/html --allow-root
+    php -d memory_limit=256M /bin/wp core download --allow-root --path="${WP_PATH}"
+    
+    # Check if download succeeded (verify a core file exists)
+    if [ ! -f "${WP_PATH}/wp-settings.php" ]; then
+        echo "Error: WordPress download/extraction failed. Check memory limits or WP-CLI version."
+        exit 1 
+    fi
 
     echo "Creating wp-config.php..."
     wp config create \
+        --path="${WP_PATH}" \
         --dbname="${MYSQL_DATABASE}" \
         --dbuser="${MYSQL_USER}" \
         --dbpass="${MYSQL_PASSWD}" \
@@ -17,29 +36,17 @@ if [ ! -f "/var/www/html/wp-config.php" ]; then
 
     echo "Installing WordPress..."
     wp core install \
+        --path="${WP_PATH}" \
         --url="https://localhost/wordpress" \
         --title="ft_services" \
         --admin_user="${MYSQL_USER}" \
         --admin_password="${MYSQL_PASSWD}" \
         --admin_email="${MYSQL_EMAIL}" \
         --allow-root
-    # Create nginx user and group if not exists
-    if ! id -u nginx >/dev/null 2>&1; then
-        addgroup -S nginx && adduser -S -G nginx nginx
-    fi
-    # Update PHP-FPM configuration
-    sed -i "s/listen = 127.0.0.1:5050/listen = 0.0.0.0:5050/" /etc/php7/php-fpm.d/www.conf
-    sed -i "s/;clear_env = no/clear_env = no/" /etc/php7/php-fpm.d/www.conf
-    sed -i "s/group = nobody/group = nginx/" /etc/php7/php-fpm.d/www.conf
-    sed -i "s/user = nobody/user = nginx/" /etc/php7/php-fpm.d/www.conf
-    sed -i "s/;listen.owner = nobody/listen.owner = nginx/" /etc/php7/php-fpm.d/www.conf
-    sed -i "s/;listen.group = nobody/listen.group = nginx/" /etc/php7/php-fpm.d/www.conf
-    sed -i "/stop editing/i if (isset(\$_SERVER['HTTP_X_FORWARDED_PROTO']) && \$_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {\n    \$_SERVER['HTTPS'] = 'on';\n}" /var/www/html/wp-config.php
-    # wp option update siteurl 'https://localhost/wordpress' --allow-root
-    # wp option update home 'https://localhost/wordpress' --allow-root
-
+else
+    echo "WordPress already installed."
 fi
 
 # Start PHP-FPM
-echo "Starting PHP-FPM..."
-php-fpm7 -F
+echo "Starting PHP-FPM 8.2..."
+php-fpm82 -F
